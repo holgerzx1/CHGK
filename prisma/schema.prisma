@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model Question {
+  id         Int         @id @default(autoincrement())
+  text       String
+  answer     String
+  difficulty String      // "easy" | "medium" | "hard"
+  topic      String
+  createdAt  DateTime    @default(now())
+
+  gameRounds GameRound[]
+}
+
+model Game {
+  id        Int       @id @default(autoincrement())
+  teamName  String
+  status    String    @default("active") // "active" | "completed" | "blitz"
+  winner    String?   // "znatok" | "televiewers" | null
+  createdAt DateTime  @default(now())
+
+  players        Player[]
+  rounds         GameRound[]
+  blitzQuestions BlitzQuestion[]
+  blackBox       BlackBox?
+}
+
+model Player {
+  id     Int    @id @default(autoincrement())
+  gameId Int
+  name   String
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model GameRound {
+  id          Int     @id @default(autoincrement())
+  gameId      Int
+  roundNumber Int     // 1-6
+  questionId  Int?    // null for round 4 (Black Box)
+  winner      String? // "znatok" | "televiewers" | null (unplayed)
+
+  game     Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [questionId], references: [id])
+
+  @@unique([gameId, roundNumber])
+}
+
+model BlitzQuestion {
+  id           Int      @id @default(autoincrement())
+  gameId       Int
+  questionText String
+  answerText   String
+  wasCorrect   Boolean? // null = not yet answered
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model BlackBox {
+  id                Int    @id @default(autoincrement())
+  gameId            Int    @unique
+  itemName          String
+  itemDescription   String
+  generatedQuestion String
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model SpotifySession {
+  id           Int      @id @default(autoincrement())
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  updatedAt    DateTime @updatedAt
+}
