@@ -8,6 +8,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Укажите предмет и историю" }, { status: 400 });
   }
 
-  const question = await generateBlackBoxQuestion(itemName, description);
-  return NextResponse.json({ question });
+  try {
+    const question = await generateBlackBoxQuestion(itemName, description);
+    return NextResponse.json({ question });
+  } catch (err) {
+    console.error("Black box generation error:", err);
+    return NextResponse.json({ error: "Ошибка генерации вопроса — проверьте API-ключ" }, { status: 500 });
+  }
 }

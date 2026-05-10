@@ -10,17 +10,22 @@ export async function POST(req: NextRequest) {
   // Delete any existing blitz questions for this game
   await prisma.blitzQuestion.deleteMany({ where: { gameId: Number(gameId) } });
 
-  const questions = await generateBlitzQuestions();
+  try {
+    const questions = await generateBlitzQuestions();
 
-  const created = await prisma.blitzQuestion.createManyAndReturn({
-    data: questions.map((q) => ({
-      gameId: Number(gameId),
-      questionText: q.question,
-      answerText: q.answer,
-    })),
-  });
+    const created = await prisma.blitzQuestion.createManyAndReturn({
+      data: questions.map((q) => ({
+        gameId: Number(gameId),
+        questionText: q.question,
+        answerText: q.answer,
+      })),
+    });
 
-  return NextResponse.json(created);
+    return NextResponse.json(created);
+  } catch (err) {
+    console.error("Blitz generation error:", err);
+    return NextResponse.json({ error: "Ошибка генерации блиц-вопросов — проверьте API-ключ" }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {

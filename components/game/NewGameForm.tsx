@@ -105,9 +105,15 @@ export function NewGameForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ itemName: blackBoxItem, description: blackBoxDesc }),
       });
-      const data = await res.json();
+      let data: { question?: string; error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        setError("Сервер вернул пустой ответ — проверьте API-ключ и перезапустите сервер");
+        return;
+      }
       if (res.ok) {
-        setBlackBoxQuestion(data.question);
+        setBlackBoxQuestion(data.question ?? "");
       } else {
         setError(data.error ?? "Ошибка генерации");
       }
